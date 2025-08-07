@@ -1,0 +1,306 @@
+body {
+  background: linear-gradient(to right, #032f5d, #1b548f, #26a29a, #6ec5b7); /* Gradiente do azul para verde */
+  font-family: 'Orbitron', sans-serif;
+}
+
+.body-sem-gradiente {
+  background: none; /* Remove o fundo gradiente */
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1; /* Coloca o canvas atrás dos outros elementos */
+}
+
+/* Efeito de aumento de pontos */
+@keyframes aumentarPontos {
+  0% {
+    transform: scale(1);
+    color: #fff;
+  }
+  50% {
+    transform: scale(1.5);
+    color: #ff00ff; /* Cor do efeito */
+  }
+  100% {
+    transform: scale(1);
+    color: #fff;
+  }
+}
+
+/* Estilo para o menu */
+#menu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgb(0, 0, 0, 0.9);
+  border: 2px solid #ff00ff;
+  padding: 40px;
+  border-radius: 20px; /* Bordas mais arredondadas */
+  color: white;
+  font-size: 28px;
+  z-index: 10;
+  animation: aparecerMensagem 0.5s ease-out forwards; /* Animação de entrada */
+}
+
+/* Animação de suavização para a entrada com opacidade */
+@keyframes aparecerMensagem {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Estilo para os botões */
+#menu button {
+  background-color: #2a2ab6;
+  color: white;
+  border: none;
+  border-radius: 10px; /* Bordas arredondadas para os botões */
+  padding: 15px 30px;
+  font-size: 20px;
+  margin: 15px;
+  cursor: pointer;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+  animation: efeitoVitoria 1s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; /* Transição suave */
+  width: 222px; /* Botões com largura fixada */
+}
+
+
+/* Efeito de brilho quando o mouse passa por cima */
+#menu button:hover {
+  background-color: #1f1f92; /* Cor de fundo mais intensa */
+  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff;
+  animation: brilhoBotao 1s infinite; /* Efeito de brilho constante */
+  transform: scale(1.1); /* Aumenta o tamanho do botão quando hover */
+}
+
+/* Efeito quando o botão é pressionado */
+#menu button:active {
+  transform: scale(1); /* Reduz um pouco o botão quando pressionado */
+  box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff;
+}
+
+/* Remove o contorno do botão quando ele é focado */
+#menu button:focus {
+  outline: none;
+}
+
+.aumentar-pontos {
+  animation: aumentarPontos 0.5s ease-out;
+}
+
+.efeito-vitoria {
+  animation: efeitoVitoria 1s ease-out;
+}
+
+/* Efeito visual no placar quando vencer */
+@keyframes placarVitoria {
+  0% {
+    color: white;
+    text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff;
+  }
+  100% {
+    color: yellow;
+    text-shadow: 0 0 20px #ff00ff, 0 0 30px #ff00ff;
+  }
+}
+
+.placar-vitoria {
+  animation: placarVitoria 1.5s ease-in-out;
+}
+
+
+#mensagem-container{
+  margin-left: 23%;
+  margin-top: 13.5%;
+  border-radius: 20px;
+  background-color: rgb(0, 0, 0, 0.9);
+  border: 2px solid #ff00ff;
+  display: flex;
+  justify-content: center ;
+  align-items: center;
+  width: 1000px;
+  height: 500px;
+   opacity: 0; /* Começa invisível */
+  animation: aparecerMensagem 0.5s ease-out forwards; /* Animação de entrada */
+}
+
+/* Animação de suavização para a entrada com opacidade */
+@keyframes aparecerMensagem {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* Mensagens de vitória e instruções */
+#mensagem-vitoria, #instrucoes-vitoria, #restart-btn{
+  text-align: center;
+  padding: 15px;
+  border-radius: 10px; /* Bordas arredondadas */
+  color: white;
+  font-size: 32px;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; /* Efeito de brilho */
+  margin: -10px 0; /* Espaço entre as mensagens */
+}
+
+#mensagem-vitoria {
+  font-size: 30px; /* Maior para dar destaque */
+  font-weight: bold;
+  margin: 50px auto;
+}
+
+#instrucoes-vitoria {
+  font-size: 22px; /* Menor para as instruções */
+  margin: 330px auto;
+  width: 890px;
+}
+
+/* Botão de reinício com animação */
+#restart-btn {
+  align-items: center;
+  padding: 1px;
+  display: none;
+  width: 220px;
+  height: 50px;
+  margin: 490px auto;
+  background-color: #2a2ab6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff; /* Efeito de brilho */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Transição suave */
+}
+
+/* Efeito de brilho quando o mouse passa por cima */
+#restart-btn:hover {
+  background-color: #1f1f92; /* Cor de fundo mais intensa */
+  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff; /* Efeito de brilho constante */
+  animation: brilhoBotao 1s infinite; /* Efeito de brilho */
+}
+
+/* Efeito quando o botão é pressionado */
+#restart-btn:active {
+  background-color: #2a2ab6; /* Volta à cor original ao pressionar */
+  box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff; /* Efeito de brilho quando pressionado */
+}
+
+/* Efeito de brilho com animação */
+@keyframes brilhoBotao {
+  0% {
+    box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff;
+  }
+  50% {
+    box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff;
+  }
+  100% {
+    box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff;
+  }
+}
+
+#home-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  color: white;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff; /* Efeito de brilho */
+}
+
+#home-btn:hover {
+  color: #ff00ff;
+  transform: scale(1.2); /* Aumenta o ícone quando passar o mouse */
+}
+
+#home-btn:active {
+  transform: scale(1); /* Retorna ao tamanho original ao pressionar */
+}
+
+/* Centraliza as mensagens e o botão na tela */
+#mensagem-vitoria, #instrucoes-vitoria, #restart-btn {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 20%; /* Alinhamento ao topo */
+}
+
+#configuracoes-menu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgb(0, 0, 0, 0.8);
+  border: 2px solid #ff00ff;
+  padding: 30px;
+  border-radius: 20px;
+  color: white;
+  font-size: 24px;
+  z-index: 20;
+  animation: aparecerMensagem 0.5s ease-out forwards; /* Animação de entrada */
+}
+
+/* Animação de suavização para a entrada com opacidade */
+@keyframes aparecerMensagem {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+
+#configuracoes-menu button {
+  background-color: #2a2ab6;
+  color: white;
+  border: none;
+  border-radius: 10px; /* Bordas arredondadas para os botões */
+  padding: 15px 30px;
+  font-size: 20px;
+  margin: 15px;
+  cursor: pointer;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff;
+  animation: efeitoVitoria 1s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; /* Transição suave */
+  width: 280px; /* Botões com largura fixada */
+}
+
+#configuracoes-menu button:hover {
+  background-color: #1f1f92; /* Cor de fundo mais intensa */
+  box-shadow: 0 0 30px #ff00ff, 0 0 40px #ff00ff;
+  animation: brilhoBotao 1s infinite; /* Efeito de brilho constante */
+  transform: scale(1.1); /* Aumenta o tamanho do botão quando hover */
+}
+
+
+#placar {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; /* Efeito de brilho */
+  background-color: black; /* Fundo preto aadicionado */
+  padding: 5px 20px; /* Adiciona um pouco de espaço ao redor do texto */
+  border-radius: 10px; /* Bordas arredondadas */
+}

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="src/style/styles.css">
+    <meta charset="utf-8" />
+  </head>
+  <body>
+
+    <!-- Menu Inicial -->
+    <div id="menu">
+      <h1>🎮 Bem-vindo ao Jogo de Ping Pong! 🏓</h1>
+      <p>Escolha uma opção abaixo:</p>
+      <button id="iniciar-jogo" onclick="iniciarJogo()">Iniciar Jogo 🏁</button>
+      <button id="configuracoes" onclick="abrirConfiguracoes()">Configurações ⚙️</button>
+    </div>
+
+    <!-- Menu de Configurações -->
+    <div id="configuracoes-menu" style="display: none;">
+      <h2>⚙️ Menu de Configurações</h2>
+      <p><strong>Som:</strong> Ativado 🔊</p>
+      <p><strong>Dificuldade:</strong> Normal 🟢</p>
+      <p><strong>Tema:</strong> Claro 🌞</p>
+      <button onclick="fecharConfiguracoes()">Fechar Configurações</button>
+    </div>
+
+    <!-- Div para o placar -->
+    <div id="placar" style="display: none;">
+      Jogador: <span id="pontosJogador">0</span> | Computador: <span id="pontosComputador">0</span>
+    </div>
+
+    <button id="home-btn" onclick="voltarParaMenu()">🏠</button> <!-- Ícone de casa -->
+
+    <!-- Div para a mensagem final -->
+    <div id="mensagem-container" style="display: none;">
+      <div id="mensagem-vitoria"></div>
+      <div id="instrucoes-vitoria"></div>
+      <button id="restart-btn" onclick="reiniciarJogo()">Reiniciar Jogo 🔄</button>
+    </div>
+
+    <main>
+    </main>
+    <script src="src/javascript/sketch.js"></script>
+  </body>
+</html>
