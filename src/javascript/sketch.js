@@ -64,6 +64,11 @@ function draw() {
   }
 }
 
+// Adicione a função windowResized para redimensionar o canvas
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);  // Redimensiona o canvas para a largura e altura da janela
+}
+
 function atualizarPlacar() {
   let pontosJogadorElement = document.getElementById("pontosJogador");
   let pontosComputadorElement = document.getElementById("pontosComputador");
