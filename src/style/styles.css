@@ -119,16 +119,16 @@ canvas {
 
 
 #mensagem-container{
-  margin-left: 23%;
-  margin-top: 13.5%;
+  margin-left: 16.5vw;
+  margin-top: 25vh;
   border-radius: 20px;
   background-color: rgb(0, 0, 0, 0.9);
   border: 2px solid #ff00ff;
   display: flex;
   justify-content: center ;
   align-items: center;
-  width: 1000px;
-  height: 500px;
+  width: 63vw;
+  height: 60vh;
    opacity: 0; /* Começa invisível */
   animation: aparecerMensagem 0.5s ease-out forwards; /* Animação de entrada */
 }
@@ -147,34 +147,34 @@ canvas {
 /* Mensagens de vitória e instruções */
 #mensagem-vitoria, #instrucoes-vitoria, #restart-btn{
   text-align: center;
-  padding: 15px;
+  padding: 5vh;
   border-radius: 10px; /* Bordas arredondadas */
   color: white;
-  font-size: 32px;
+  font-size: 3.2vw;
   text-shadow: 0 0 10px #fff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; /* Efeito de brilho */
   margin: -10px 0; /* Espaço entre as mensagens */
 }
 
 #mensagem-vitoria {
-  font-size: 30px; /* Maior para dar destaque */
+  font-size: 1.5vw; /* Maior para dar destaque */
   font-weight: bold;
-  margin: 50px auto;
+  margin: 0.9vw auto;
 }
 
 #instrucoes-vitoria {
-  font-size: 22px; /* Menor para as instruções */
-  margin: 330px auto;
-  width: 890px;
+  font-size: 1vw; /* Menor para as instruções */
+  margin: 15.9vw auto;
+  width: 89vw;
 }
 
 /* Botão de reinício com animação */
 #restart-btn {
   align-items: center;
-  padding: 1px;
+  padding: 0.1px;
   display: none;
-  width: 220px;
+  width: 13vw;
   height: 50px;
-  margin: 490px auto;
+  margin: 54vh auto;
   background-color: #2a2ab6;
   color: white;
   border: none;
