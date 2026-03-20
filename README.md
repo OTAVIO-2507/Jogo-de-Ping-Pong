@@ -2,7 +2,7 @@
 Um simples jogo de Ping Pong desenvolvido com HTML, CSS e JavaScript. Acesse a tela inicial, inicie o jogo e desafie seu adversário para uma partida de Ping Pong clássica diretamente no navegador. O projeto possui um sistema de pontuação e uma interface amigável.
 
 ## 🌐 Visualize o projeto:
-**[Ver Projeto Online]()**
+**[Ver Projeto Online](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)**
 
 ## 🛠️ Tecnologias Utilizadas
 - HTML5: Estrutura semântica e otimizada
