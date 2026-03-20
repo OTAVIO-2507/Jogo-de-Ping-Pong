@@ -1,346 +1,329 @@
-let raqueteJogador, raqueteComputador, bola, barraSuperior, barraInferior;
-let fundoImg, bolaImg, barraJogadorImg, barraComputadorImg;
-let pontosJogador = 0;
-let pontosComputador = 0;
-let venceu = false; // Controle de estado do jogo
-let jogoPausado = true; // Inicialmente, o jogo começa pausado
+// ================================================
+//   PING PONG GALÁCTICO – sketch.js (AUDIO RESILIENT)
+// ================================================
 
-function preload() {
-  fundoImg = loadImage('src/img/fundo1.png');
-  bolaImg = loadImage('src/img/bola.png');
-  barraJogadorImg = loadImage('src/img/barra01.png');
-  barraComputadorImg = loadImage('src/img/barra02.png');
+console.log("🚀 Sketch Galáctico v5.3 - Áudio Nativo Ativado");
+
+// --- Objetos do jogo ---
+let raqueteJogador, raqueteComputador, bola, barraSuperior, barraInferior;
+let pontosJogador = 0, pontosComputador = 0;
+let venceu = false, jogoPausado = true;
+let particulas = [];
+
+// Configurações padrão
+let config = {
+  volumeSom: 0.5,
+  volumeMusica: 0.4,
+  dificuldade: 'normal',
+  tema: 'espaco',
+  pontos: 5,
+};
+
+// Paleta de cores por tema
+const CORES_TEMAS = {
+  espaco: { bola: "#00E5FF", raqueteJ: "#00E5FF", raqueteC: "#A259FF", particula: "#FFFFFF" },
+  neon: { bola: "#FF00FF", raqueteJ: "#39FF14", raqueteC: "#FF00FF", particula: "#39FF14" },
+  fogo: { bola: "#FFFF00", raqueteJ: "#FF4500", raqueteC: "#FFA500", particula: "#FFCC00" }
+};
+
+const VELOCIDADE_CPU = { facil: 3, normal: 5, dificil: 8 };
+let ranking = JSON.parse(localStorage.getItem('ppg_ranking') || '[]');
+
+const el = (id) => document.getElementById(id);
+const show = (id) => { const e = el(id); if (e) e.style.display = 'block'; };
+const hide = (id) => { const e = el(id); if (e) e.style.display = 'none'; };
+
+// =============================================
+//  MOTOR DE ÁUDIO HÍBRIDO (Tag Audio + Synth)
+// =============================================
+let audioCtx = null;
+let musicStarted = false;
+let tempo = 0;
+let usesExternalMusic = false;
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
 }
 
+// Iniciar música e áudio no primeiro clique
+document.addEventListener('click', () => {
+  initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!musicStarted) {
+    startMusic();
+    musicStarted = true;
+  }
+}, { once: true });
+
+function tocarBeep(freq = 440, dur = 0.1, tipo = 'sine', vol = 0.1) {
+  if (config.volumeSom <= 0) return;
+  initAudio();
+  try {
+    const time = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.type = tipo;
+    osc.frequency.setValueAtTime(freq, time);
+    g.gain.setValueAtTime(vol * config.volumeSom, time);
+    g.gain.exponentialRampToValueAtTime(0.001, time + dur);
+    osc.start(time); osc.stop(time + dur);
+  } catch (e) { }
+}
+
+const tocarGol = () => tocarBeep(200, 0.4, 'sawtooth', 0.2);
+const tocarRaquete = () => tocarBeep(600, 0.1, 'square', 0.1);
+const tocarBorda = () => tocarBeep(800, 0.05, 'sine', 0.05);
+
+function startMusic() {
+  const audioEl = el('bg-music');
+  if (audioEl) {
+    audioEl.volume = config.volumeMusica;
+    audioEl.play().then(() => {
+      console.log("🎵 Música externa (MP3) iniciada!");
+      usesExternalMusic = true;
+    }).catch(err => {
+      console.warn("⚠️ Não foi possível tocar o MP3 automaticamente. Usando sintetizador procedural.", err);
+      loopMusicProcedural();
+    });
+    
+    // Fallback caso o arquivo MP3 não carregue ou falhe
+    audioEl.onerror = () => {
+       console.warn("❌ Erro ao carregar arquivo de música. Mudando para procedural.");
+       usesExternalMusic = false;
+       loopMusicProcedural();
+    }
+  } else {
+    loopMusicProcedural();
+  }
+}
+
+// Fallback: Sintetizador 8-bit
+const melodia = [392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00, 349.23];
+const baixo = [196.00, 196.00, 174.61, 155.56];
+
+function loopMusicProcedural() {
+  if (usesExternalMusic) return; // Se a externa estiver tocando, cancela procedural
+  
+  if (config.volumeMusica > 0 && audioCtx) {
+    const time = audioCtx.currentTime;
+    if (tempo % 4 === 0) tocarSomNota(60, 0.15, 'sine', 0.5 * config.volumeMusica, time);
+    if (tempo % 2 === 0) tocarSomNota(baixo[Math.floor(tempo / 4) % baixo.length], 0.3, 'triangle', 0.3 * config.volumeMusica, time);
+    tocarSomNota(melodia[tempo % melodia.length], 0.2, 'square', 0.12 * config.volumeMusica, time);
+    tempo++;
+  }
+  setTimeout(loopMusicProcedural, 250);
+}
+
+function tocarSomNota(freq, dur, tipo, vol, startTime) {
+  try {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.type = tipo; osc.frequency.setValueAtTime(freq, startTime);
+    if (tipo === 'sine') osc.frequency.exponentialRampToValueAtTime(0.01, startTime + dur);
+    g.gain.setValueAtTime(vol, startTime);
+    g.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+    osc.start(startTime); osc.stop(startTime + dur);
+  } catch (e) { }
+}
+
+// =============================================
+//  P5.JS CORE
+// =============================================
+
 function setup() {
-  createCanvas(windowWidth, windowHeight);
-  raqueteJogador = new Raquete(30, height / 2, 20, 110);
-  raqueteComputador = new Raquete(width - 40, height / 2, 20, 110);
-  bola = new Bola(30);
-  barraSuperior = new Barra(0, 0, width, 5);
-  barraInferior = new Barra(0, height, width, 5);
+  let cnv = createCanvas(windowWidth, windowHeight);
+  cnv.parent(document.body);
+  cnv.style('position', 'fixed');
+  cnv.style('top', '0'); cnv.style('left', '0'); cnv.style('z-index', '0');
 
-  // Botão de reinício, mas inicialmente escondido
-  let botaoReiniciar = select('#restart-btn');
-  botaoReiniciar.mousePressed(reiniciarJogo);
+  raqueteJogador = new Raquete(30, height / 2, 18, 110, true);
+  raqueteComputador = new Raquete(width - 48, height / 2, 18, 110, false);
+  bola = new Bola(24);
+  barraSuperior = new Barra(0, 10);
+  barraInferior = new Barra(height - 10, 10);
 
-  // Adiciona o evento para o botão de iniciar jogo
-  select('#iniciar-jogo').mousePressed(iniciarJogo);
+  aplicarTemaVisual();
+  renderizarRanking();
+  atualizarUIConfig();
 }
 
 function draw() {
-  if (jogoPausado) {
-    return; // Se o jogo estiver pausado, nada será desenhado ou atualizado
+  let bg = color(5, 5, 20);
+  if (config.tema === 'fogo') bg = color(20, 5, 5);
+  else if (config.tema === 'neon') bg = color(10, 5, 20);
+  background(bg);
+
+  stroke(255, 255, 255, 15);
+  for (let i = 0; i < width; i += 120) line(i, 0, i, height);
+  for (let i = 0; i < height; i += 120) line(0, i, width, i);
+
+  if (jogoPausado) return;
+
+  raqueteJogador.atualizar(); raqueteComputador.atualizar(); bola.atualizar();
+  bola.checarColisao(raqueteJogador); bola.checarColisao(raqueteComputador);
+
+  for (let i = particulas.length - 1; i >= 0; i--) {
+    particulas[i].atualizar(); particulas[i].exibir();
+    if (particulas[i].vida <= 0) particulas.splice(i, 1);
   }
 
-  let escala = Math.max(width / fundoImg.width, height / fundoImg.height);
-  let imgWidth = fundoImg.width * escala;
-  let imgHeight = fundoImg.height * escala;
-  let imgX = (width - imgWidth) / 2;
-  let imgY = (height - imgHeight) / 2;
-  image(fundoImg, imgX, imgY, imgWidth, imgHeight);
+  raqueteJogador.exibir(); raqueteComputador.exibir(); bola.exibir();
+  barraSuperior.exibir(); barraInferior.exibir();
 
-  raqueteJogador.atualizar();
-  raqueteComputador.atualizar();
-  bola.atualizar(barraSuperior, barraInferior);
-
-  bola.verificarColisaoRaquete(raqueteJogador);
-  bola.verificarColisaoRaquete(raqueteComputador);
-
-  raqueteJogador.exibir();
-  raqueteComputador.exibir();
-  bola.exibir();
-  barraSuperior.exibir();
-  barraInferior.exibir();
-
-  // Atualiza o placar no HTML com animação
-  atualizarPlacar();
-
-  // Verifica se alguém venceu ou perdeu e exibe a mensagem correspondente
-  if (pontosJogador >= 3 && pontosJogador > pontosComputador) {
-    exibirMensagemVitoria();
-  } else if (pontosComputador >= 3 && pontosComputador > pontosJogador) {
-    exibirMensagemPerda();
+  if (!venceu) {
+    if (pontosJogador >= config.pontos) finalizarPartida(true);
+    else if (pontosComputador >= config.pontos) finalizarPartida(false);
   }
 }
 
-// Adicione a função windowResized para redimensionar o canvas
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);  // Redimensiona o canvas para a largura e altura da janela
+function windowResized() { resizeCanvas(windowWidth, windowHeight); }
+
+// =============================================
+//  CONTROLE & CONFIGS
+// =============================================
+
+window.iniciarJogo = () => {
+  hide('menu'); show('placar'); show('home-btn');
+  jogoPausado = false; venceu = false; pontosJogador = 0; pontosComputador = 0;
+  atualizarPlacarHTML(); bola.reiniciar();
+  tocarBeep(500, 0.2);
+};
+
+window.voltarParaMenu = () => {
+  hide('mensagem-container'); hide('configuracoes-menu'); hide('ranking-menu'); hide('placar');
+  show('menu'); jogoPausado = true;
+};
+
+window.reiniciarJogo = () => {
+  hide('mensagem-container');
+  pontosJogador = 0; pontosComputador = 0; venceu = false; jogoPausado = false;
+  bola.reiniciar(); atualizarPlacarHTML();
+};
+
+window.abrirConfiguracoes = () => { tocarBeep(480, 0.1); hide('menu'); show('configuracoes-menu'); };
+window.fecharConfiguracoes = () => { tocarBeep(380, 0.1); hide('configuracoes-menu'); show('menu'); };
+window.abrirRanking = () => { tocarBeep(480, 0.1); renderizarRanking(); hide('menu'); show('ranking-menu'); };
+window.fecharRanking = () => { tocarBeep(380, 0.1); hide('ranking-menu'); show('menu'); };
+
+window.setVolumeSom = (v) => { 
+  config.volumeSom = parseFloat(v); 
+  atualizarUIConfig();
+  tocarBeep(500, 0.05); 
+};
+
+window.setVolumeMusica = (v) => { 
+  config.volumeMusica = parseFloat(v); 
+  atualizarUIConfig();
+  const audioEl = el('bg-music');
+  if (audioEl) audioEl.volume = config.volumeMusica;
+};
+
+window.setDificuldade = (d) => { config.dificuldade = d; tocarBeep(450, 0.1); atualizarUIConfig(); };
+window.setTema = (t) => { config.tema = t; tocarBeep(550, 0.1); aplicarTemaVisual(); atualizarUIConfig(); };
+window.setPontos = (p) => { config.pontos = p; tocarBeep(500, 0.1); atualizarUIConfig(); };
+
+function aplicarTemaVisual() {
+  document.body.className = config.tema === 'espaco' ? '' : 'tema-' + config.tema;
 }
 
-function atualizarPlacar() {
-  let pontosJogadorElement = document.getElementById("pontosJogador");
-  let pontosComputadorElement = document.getElementById("pontosComputador");
+function atualizarUIConfig() {
+  if (el('val-som')) el('val-som').innerText = Math.round(config.volumeSom * 100) + "%";
+  if (el('vol-som')) el('vol-som').value = config.volumeSom;
+  if (el('val-musica')) el('val-musica').innerText = Math.round(config.volumeMusica * 100) + "%";
+  if (el('vol-musica')) el('vol-musica').value = config.volumeMusica;
+  ['facil', 'normal', 'dificil'].forEach(d => el('diff-' + d).className = config.dificuldade === d ? 'diff-btn active' : 'diff-btn');
+  ['espaco', 'neon', 'fogo'].forEach(t => el('tema-' + t).className = config.tema === t ? 'theme-btn active' : 'theme-btn');
+  [3, 5, 10].forEach(p => el('pts-' + p).className = config.pontos === p ? 'pts-btn active' : 'pts-btn');
+}
 
-  // Animação para pontos do jogador
-  pontosJogadorElement.classList.add("aumentar-pontos");
-  setTimeout(() => {
-    pontosJogadorElement.classList.remove("aumentar-pontos");
-  }, 500);
+function atualizarPlacarHTML() {
+  if (el('pontosJogador')) el('pontosJogador').innerText = pontosJogador;
+  if (el('pontosComputador')) el('pontosComputador').innerText = pontosComputador;
+}
 
-  // Animação para pontos do computador
-  pontosComputadorElement.classList.add("aumentar-pontos");
-  setTimeout(() => {
-    pontosComputadorElement.classList.remove("aumentar-pontos");
-  }, 500);
-
-  // Atualiza os valores dos pontos no HTML
-  pontosJogadorElement.textContent = pontosJogador;
-  pontosComputadorElement.textContent = pontosComputador;
-
-  // Verifica se houve um gol para fazer o fundo piscar e adicionar efeitos visuais
-  if (pontosJogador > 0 || pontosComputador > 0) {
-    ativarAnimacaoGol();
+function finalizarPartida(ganhou) {
+  venceu = true; jogoPausado = true;
+  show('mensagem-container');
+  const msg = el('mensagem-vitoria');
+  if (msg) {
+    msg.innerHTML = ganhou ? '<h1>🚀 VITÓRIA!</h1>' : '<h1>☄️ DERROTA!</h1>';
+    msg.innerHTML += `<p style="font-size:2em; color:var(--accent2);">${pontosJogador} - ${pontosComputador}</p>`;
   }
+  salvarNoRanking(pontosJogador, pontosComputador, ganhou);
+  tocarBeep(ganhou ? 600 : 200, 0.5);
 }
 
-function ativarAnimacaoGol() {
-  // Adiciona uma animação de flash no fundo
-  select('body').addClass('flash-fundo');
-
-  // Adiciona animação no placar
-  select('#placar').addClass('placar-gol');
-
-  // A animação do placar será reaplicada para todos os gols
-  setTimeout(() => {
-    select('#placar').removeClass('placar-gol'); // Remove a classe de animação
-    // Força a animação a ser reaplicada imediatamente
-    setTimeout(() => {
-      select('#placar').addClass('placar-gol');
-    }, 0); // Coloca a animação de volta no placar
-  }, 1000); // A duração do efeito de animação
+function salvarNoRanking(pj, pc, v) {
+  ranking.unshift({ pj, pc, v, d: new Date().toLocaleDateString() });
+  if (ranking.length > 8) ranking.pop();
+  localStorage.setItem('ppg_ranking', JSON.stringify(ranking));
 }
 
-function exibirMensagemPerda() {
-  venceu = true; // O jogo é pausado após derrota
-  jogoPausado = true; // Pausa o jogo
-  document.body.classList.add('body-sem-gradiente');  // Remove o gradiente de fundo
-  select('#mensagem-container').show();
-  select('#mensagem-vitoria').html(`  
-    <h1>😞 Você Perdeu! 😞</h1>
-    <p><strong>Pontuação Final:</strong></p>
-    <p><span style="font-size: 24px; font-weight: bold;">Jogador: ${pontosJogador} | Computador: ${pontosComputador}</span></p>
-  `);
-
-  select('#instrucoes-vitoria').html(`
-    <p>😔 Melhor sorte na próxima! Deseja tentar novamente?</p>
-    <p>Clique no botão abaixo para reiniciar o jogo e continuar se desafiando! 🕹️</p>
-  `);
-
-  select('#restart-btn').show(); // Mostra o botão de reinício
-  select('#restart-btn').addClass('efeito-vitoria');  // Adiciona o efeito ao botão
-
-  // Inicia a animação no fundo e no placar
-  select('#placar').addClass('placar-vitoria');
+function renderizarRanking() {
+  const lista = el('ranking-lista');
+  if (!lista) return;
+  if (ranking.length === 0) { lista.innerHTML = '<p class="ranking-empty">Nenhuma partida registrada.</p>'; return; }
+  lista.innerHTML = ranking.map(r => `<div class="ranking-item"><span>${r.v ? '🏆' : '💀'} ${r.d}</span><span>${r.pj} - ${r.pc}</span></div>`).join('');
 }
 
-function exibirMensagemVitoria() {
-  venceu = true; // O jogo é pausado após vitória
-  jogoPausado = true; // Pausa o jogo
-  document.body.classList.add('body-sem-gradiente');  // Remove o gradiente de fundo
-  select('#mensagem-container').show();
-  select('#mensagem-vitoria').html(`  
-    <h1>🎉 Parabéns! Você Venceu! 🎉</h1>
-    <p><strong>Pontuação Final:</strong></p>
-    <p><span style="font-size: 24px; font-weight: bold;">Jogador: ${pontosJogador} | Computador: ${pontosComputador}</span></p>
-  `);
-
-  select('#instrucoes-vitoria').html(`
-    <p>👏 Que jogo incrível! Deseja tentar novamente?</p>
-    <p>Clique no botão abaixo para reiniciar a partida e continuar se desafiando! 🕹️</p>
-  `);
-
-  select('#restart-btn').show(); // Mostra o botão de reinício
-  select('#restart-btn').addClass('efeito-vitoria');  // Adiciona o efeito ao botão
-
-  // Inicia a animação no fundo e no placar
-  select('#placar').addClass('placar-vitoria');
-}
-
-function reiniciarJogo() {
-  // Resetando o estado do jogo
-  pontosJogador = 0;
-  pontosComputador = 0;
-  venceu = false; // O jogo retoma a partir daqui
-  jogoPausado = false; // Retoma o jogo
-
-  bola.reiniciar();
-  raqueteComputador.y = height / 2 - raqueteComputador.h / 2;
-  raqueteJogador.y = height / 2 - raqueteJogador.h / 2;
-
-  select('#restart-btn').hide(); // Esconde o botão de reinício
-  select('#mensagem-vitoria').html('');
-  select('#instrucoes-vitoria').html('');
-  select('#mensagem-container').hide();
-
-  // Exibe o canvas e coloca o fundo novamente
-  select('canvas').show();
-  document.body.classList.remove('body-sem-gradiente');  // Restaura o gradiente de fundo
-
-  // Reinicia o placar
-  select('#pontosJogador').textContent = pontosJogador;
-  select('#pontosComputador').textContent = pontosComputador;
-
-}
-
-function iniciarJogo() {
-  // Esconde o menu e inicia o jogo
-  select('#menu').hide(); // Esconde o menu
-  select('#placar').show();// Exibe o placar
-  select('canvas').show();// Exibe o jogo
-  jogoPausado = false;  // Despausa o jogo
-  document.body.classList.remove('body-sem-gradiente'); // Remove o fundo do menu e coloca o fundo gradiente
-
-}
+// =============================================
+//  CLASSES
+// =============================================
 
 class Raquete {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-  }
-
+  constructor(x, y, w, h, isPlayer) { this.x = x; this.y = y; this.w = w; this.h = h; this.isPlayer = isPlayer; }
   atualizar() {
-    if (this === raqueteJogador) {
-      this.y = mouseY;
-    } else {
-      if (bola.y > this.y + this.h / 2) {
-        this.y += 3;
-      } else if (bola.y < this.y - this.h / 2) {
-        this.y -= 3;
-      }
+    if (this.isPlayer) { if (mouseY > 0 && mouseY < height) this.y = lerp(this.y, mouseY, 0.2); }
+    else {
+      let vel = VELOCIDADE_CPU[config.dificuldade] || 5;
+      if (this.y < bola.y - 10) this.y += vel; else if (this.y > bola.y + 10) this.y -= vel;
     }
-    this.y = constrain(this.y, this.h / 2 + barraSuperior.h , height - this.h / 2 - barraInferior.h);
+    this.y = constrain(this.y, this.h / 2 + 10, height - this.h / 2 - 10);
   }
-
   exibir() {
-    if (this === raqueteJogador) {
-      image(barraJogadorImg, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
-    } else {
-      image(barraComputadorImg, this.x - this.w / 2, this.y - this.h / 2, this.w, this.h);
-    }
+    push(); rectMode(CENTER);
+    let col = color(this.isPlayer ? CORES_TEMAS[config.tema].raqueteJ : CORES_TEMAS[config.tema].raqueteC);
+    noStroke();
+    for (let i = 10; i > 0; i--) { fill(red(col), green(col), blue(col), 25 - i * 2); rect(this.x, this.y, this.w + i * 2, this.h + i * 2, 8); }
+    fill(255); rect(this.x, this.y, this.w, this.h, 4); pop();
   }
 }
 
 class Bola {
-  constructor(r) {
-    this.r = r;
-    this.reiniciar();
+  constructor(r) { this.r = r; this.reiniciar(); }
+  reiniciar() { this.x = width / 2; this.y = height / 2; this.vx = random([-7, 7]); this.vy = random(-5, 5); }
+  atualizar() {
+    this.x += this.vx; this.y += this.vy;
+    if (this.y < this.r / 2 + 10 || this.y > height - this.r / 2 - 10) { this.vy *= -1; tocarBorda(); }
+    if (this.x > width) { pontosJogador++; tocarGol(); this.reiniciar(); atualizarPlacarHTML(); }
+    else if (this.x < 0) { pontosComputador++; tocarGol(); this.reiniciar(); atualizarPlacarHTML(); }
   }
-
-  aumentarVelocidade() {
-    const fatorAumento = 1.1;
-    this.velocidadeX *= fatorAumento;
-    this.velocidadeY *= fatorAumento;
-  }
-
-  reiniciar() {
-    this.x = width / 2;
-    this.y = height / 2;
-    this.velocidadeX = random([-4, -3, 3, 4]);
-    this.velocidadeY = random(-3, 3);
-  }
-
-  atualizar(barraSuperior, barraInferior) {
-    this.x += this.velocidadeX;
-    this.y += this.velocidadeY;
-
-    if (this.y - this.r / 2 <= barraSuperior.y + barraSuperior.h || 
-        this.y + this.r / 2 >= barraInferior.y - barraInferior.h) {
-      this.velocidadeY *= -1;
-    }
-
-    if (this.x + this.r / 2 >= width) {
-      pontosJogador++;
-      this.reiniciar();
-    } else if (this.x - this.r / 2 <= 0) {
-      pontosComputador++;
-      raqueteComputador.y = random(height - raqueteComputador.h);
-      this.reiniciar();
-    }
-
-    // Verifica se algum jogador venceu
-    if (pontosJogador >= 3 || pontosComputador >= 3) {
-      venceu = true;
-      select('#restart-btn').show(); // Mostra o botão para reiniciar o jogo
+  checarColisao(r) {
+    if (abs(this.x - r.x) < this.r / 2 + r.w / 2 && abs(this.y - r.y) < this.r / 2 + r.h / 2) {
+      if (this.x < width / 2) { if (this.vx < 0) { this.x = r.x + r.w / 2 + this.r / 2; this.vx *= -1.08; } }
+      else { if (this.vx > 0) { this.x = r.x - r.w / 2 - this.r / 2; this.vx *= -1.08; } }
+      this.vy = (this.y - r.y) * 0.15; this.vx = constrain(this.vx, -20, 20);
+      tocarRaquete();
+      let pColor = CORES_TEMAS[config.tema].particula;
+      for (let i = 0; i < 15; i++) particulas.push(new Particula(this.x, this.y, pColor));
     }
   }
-
-  verificarColisaoRaquete(raquete) {
-    if (this.x - this.r / 2 <= raquete.x + raquete.w / 2 && 
-        this.x + this.r / 2 >= raquete.x - raquete.w / 2 && 
-        this.y + this.r / 2 >= raquete.y - raquete.h / 2 && 
-        this.y - this.r / 2 <= raquete.y + raquete.h / 2) {
-      let posicaoRelativa = (this.y - raquete.y) / (raquete.h / 2);
-      this.velocidadeY = map(posicaoRelativa, -1, 1, -3, 3);
-      this.velocidadeX *= -1;
-      this.aumentarVelocidade();
-    }
-  }
-
   exibir() {
-    image(bolaImg, this.x - this.r / 2, this.y - this.r / 2, this.r, this.r);
+    push(); noStroke();
+    let col = color(CORES_TEMAS[config.tema].bola);
+    for (let i = 8; i > 0; i--) { fill(red(col), green(col), blue(col), 40 - i * 4); ellipse(this.x, this.y, this.r + i * 4); }
+    fill(255); ellipse(this.x, this.y, this.r); pop();
   }
 }
 
-class Barra {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-  }
+class Barra { constructor(y, h) { this.y = y; this.h = h; } exibir() { noStroke(); fill(35, 45, 90); rectMode(CORNER); rect(0, this.y, width, this.h); } }
 
-  exibir() {
-    fill(color('#2B3F6D'));
-    rectMode(CENTER);
-    rect(this.x + this.w / 2, this.y, this.w, this.h);
-  }
+class Particula {
+  constructor(x, y, col) { this.x = x; this.y = y; this.vx = random(-4, 4); this.vy = random(-4, 4); this.vida = 255; this.col = color(col); this.tamanho = random(2, 6); }
+  atualizar() { this.x += this.vx; this.y += this.vy; this.vida -= 8; }
+  exibir() { noStroke(); fill(red(this.col), green(this.col), blue(this.col), this.vida); ellipse(this.x, this.y, this.tamanho); }
 }
-
-function voltarParaMenu() {
-  // Esconde a mensagem de vitória/derrota
-  select('#mensagem-container').hide();
-
-  // Esconde a mesagem de configuração
-  select('#configuracoes-menu').hide();
-
-  // Esconde o placar
-  select('#placar').hide();
-
-  // Esconde o canva do jogo
-  select('canvas').hide();
-
-  // Mostra o menu inicial novamente
-  select('#menu').show();
-
-  // Restaura o gradiente de fundo
-  document.body.classList.remove('body-sem-gradiente');  // Remove a classe para mostrar o gradiente
-
-  // Pausa o jogo e reseta o estado
-  jogoPausado = true;
-  venceu = false;
-  pontosJogador = 0;
-  pontosComputador = 0;
-  select('#pontosJogador').textContent = pontosJogador;
-  select('#pontosComputador').textContent = pontosComputador;
-}
-
-function abrirConfiguracoes() {
-  // Esconde o menu inicial
-  select('#menu').hide();
-
-  // Exibe o menu de configurações
-  select('#configuracoes-menu').show();
-}
-
-function fecharConfiguracoes() {
-  // Esconde o menu de configurações
-  select('#configuracoes-menu').hide();
-
-  // Exibe o menu inicial novamente
-  select('#menu').show();
-}
-

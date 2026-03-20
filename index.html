@@ -1,48 +1,167 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="src/style/styles.css">
-    <meta charset="utf-8" />
-    <link rel="shortcut icon" href="src/img/raquete.png" type="image/x-icon">
-    <title> Jogo de Ping Pong</title>
-  </head>
-  <body>
 
-    <!-- Menu Inicial -->
-    <div id="menu">
-      <h1>🎮 Bem-vindo ao Jogo de Ping Pong! 🏓</h1>
-      <p>Escolha uma opção abaixo:</p>
-      <button id="iniciar-jogo" onclick="iniciarJogo()">Iniciar Jogo 🏁</button>
-      <button id="configuracoes" onclick="abrirConfiguracoes()">Configurações ⚙️</button>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.js"></script>
+  <link rel="stylesheet" type="text/css" href="src/style/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap"
+    rel="stylesheet">
+  <title>Ping Pong Galáctico</title>
+</head>
+
+<body>
+
+  <!-- Fundo de estrelas animadas -->
+  <div id="stars-bg">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+  </div>
+
+  <!-- ===== MENU INICIAL ===== -->
+  <div id="menu">
+    <div class="menu-logo">
+      <div class="logo-icon">🏓</div>
+      <h1 class="menu-title">PING PONG</h1>
+      <p class="menu-subtitle">✦ GALÁCTICO ✦</p>
+      <div class="menu-divider"></div>
     </div>
 
-    <!-- Menu de Configurações -->
-    <div id="configuracoes-menu" style="display: none;">
-      <h2>⚙️ Menu de Configurações</h2>
-      <p><strong>Som:</strong> Ativado 🔊</p>
-      <p><strong>Dificuldade:</strong> Normal 🟢</p>
-      <p><strong>Tema:</strong> Claro 🌞</p>
-      <button onclick="fecharConfiguracoes()">Fechar Configurações</button>
+    <div class="menu-buttons">
+      <button id="btn-jogar" class="menu-btn btn-primary" onclick="iniciarJogo()">
+        <span class="btn-icon">🚀</span>
+        <span class="btn-text">JOGAR</span>
+      </button>
+
+      <button id="btn-config" class="menu-btn btn-secondary" onclick="abrirConfiguracoes()">
+        <span class="btn-icon">⚙️</span>
+        <span class="btn-text">CONFIGURAÇÕES</span>
+      </button>
+
+      <button id="btn-ranking" class="menu-btn btn-tertiary" onclick="abrirRanking()">
+        <span class="btn-icon">🏆</span>
+        <span class="btn-text">RANKING</span>
+      </button>
     </div>
 
-    <!-- Div para o placar -->
-    <div id="placar" style="display: none;">
-      Jogador: <span id="pontosJogador">0</span> | Computador: <span id="pontosComputador">0</span>
+    <p class="menu-hint">Use o mouse para mover a raquete</p>
+  </div>
+
+  <!-- ===== MENU DE CONFIGURAÇÕES ===== -->
+  <div id="configuracoes-menu" style="display: none;">
+    <div class="config-header">
+      <h2 class="config-title">⚙️ CONFIGURAÇÕES</h2>
+      <div class="menu-divider"></div>
     </div>
 
-    <button id="home-btn" onclick="voltarParaMenu()">🏠</button> <!-- Ícone de casa -->
-
-    <!-- Div para a mensagem final -->
-    <div id="mensagem-container" style="display: none;">
-      <div id="mensagem-vitoria"></div>
-      <div id="instrucoes-vitoria"></div>
-      <button id="restart-btn" onclick="reiniciarJogo()">Reiniciar Jogo 🔄</button>
+    <!-- Volume Efeitos -->
+    <div class="config-section">
+      <div class="config-label">
+        <span class="config-icon">🔊</span>
+        <span>EFEITOS</span>
+        <span id="val-som" class="val-badge">50%</span>
+      </div>
+      <div class="slider-container">
+        <input type="range" id="vol-som" min="0" max="1" step="0.1" value="0.5" oninput="setVolumeSom(this.value)">
+      </div>
     </div>
 
-    <main>
-    </main>
-    <script src="src/javascript/sketch.js"></script>
-  </body>
+    <!-- Volume Música -->
+    <div class="config-section">
+      <div class="config-label">
+        <span class="config-icon">🎵</span>
+        <span>MÚSICA</span>
+        <span id="val-musica" class="val-badge">30%</span>
+      </div>
+      <div class="slider-container">
+        <input type="range" id="vol-musica" min="0" max="1" step="0.1" value="0.3" oninput="setVolumeMusica(this.value)">
+      </div>
+    </div>
+
+    <!-- Dificuldade -->
+    <div class="config-section">
+      <div class="config-label">
+        <span class="config-icon">⚡</span>
+        <span>DIFICULDADE</span>
+      </div>
+      <div class="difficulty-btns">
+        <button class="diff-btn" id="diff-facil" onclick="setDificuldade('facil')">FÁCIL</button>
+        <button class="diff-btn active" id="diff-normal" onclick="setDificuldade('normal')">NORMAL</button>
+        <button class="diff-btn" id="diff-dificil" onclick="setDificuldade('dificil')">DIFÍCIL</button>
+      </div>
+    </div>
+
+    <!-- Temas -->
+    <div class="config-section">
+      <div class="config-label">
+        <span class="config-icon">🎨</span>
+        <span>TEMA</span>
+      </div>
+      <div class="theme-btns">
+        <button class="theme-btn active" id="tema-espaco" onclick="setTema('espaco')" title="Espaço">🌌</button>
+        <button class="theme-btn" id="tema-neon" onclick="setTema('neon')" title="Neon">💜</button>
+        <button class="theme-btn" id="tema-fogo" onclick="setTema('fogo')" title="Fogo">🔥</button>
+      </div>
+    </div>
+
+    <!-- Pontos -->
+    <div class="config-section">
+      <div class="config-label">
+        <span class="config-icon">🎯</span>
+        <span>PONTOS PARA VENCER</span>
+      </div>
+      <div class="pts-btns">
+        <button class="pts-btn" id="pts-3" onclick="setPontos(3)">3</button>
+        <button class="pts-btn active" id="pts-5" onclick="setPontos(5)">5</button>
+        <button class="pts-btn" id="pts-10" onclick="setPontos(10)">10</button>
+      </div>
+    </div>
+
+    <button class="menu-btn btn-back" onclick="fecharConfiguracoes()">
+      <span class="btn-icon">◀</span>
+      <span class="btn-text">VOLTAR</span>
+    </button>
+  </div>
+
+  <!-- ===== RANKING ===== -->
+  <div id="ranking-menu" style="display: none;">
+    <div class="config-header">
+      <h2 class="config-title">🏆 RANKING</h2>
+      <div class="menu-divider"></div>
+    </div>
+    <div id="ranking-lista" class="ranking-lista"></div>
+    <button class="menu-btn btn-back" onclick="fecharRanking()">
+      <span class="btn-icon">◀</span>
+      <span class="btn-text">VOLTAR</span>
+    </button>
+  </div>
+
+  <!-- ===== JOGO / PLACAR ===== -->
+  <div id="placar" style="display: none;">
+    <span class="placar-label">JOGADOR</span>
+    <span id="pontosJogador" class="placar-pts">0</span>
+    <span class="placar-sep">✦</span>
+    <span id="pontosComputador" class="placar-pts">0</span>
+    <span class="placar-label">CPU</span>
+  </div>
+
+  <!-- Botão home -->
+  <button id="home-btn" onclick="voltarParaMenu()" title="Menu Principal">🏠</button>
+
+  <!-- Mensagem final -->
+  <div id="mensagem-container" style="display: none;">
+    <div id="mensagem-vitoria"></div>
+    <div id="instrucoes-vitoria"></div>
+    <button id="restart-btn" onclick="reiniciarJogo()">🔄 JOGAR NOVAMENTE</button>
+  </div>
+
+  <!-- Áudio nativo para resiliência local -->
+  <audio id="bg-music" loop src="src/audio/musica.mp3"></audio>
+
+  <!-- Script do Jogo com Buster de Cache -->
+  <script src="src/javascript/sketch.js?v=5.3"></script>
+</body>
+
 </html>
