@@ -1,8 +1,8 @@
 // ================================================
-//   PING PONG GALÁCTICO – sketch.js (AUDIO RESILIENT)
+//   PING PONG GALÁCTICO – sketch.js (AUDIO V5.4)
 // ================================================
 
-console.log("🚀 Sketch Galáctico v5.3 - Áudio Nativo Ativado");
+console.log("🚀 Sketch Galáctico v5.4 - Ativação no Splash Ativada");
 
 // --- Objetos do jogo ---
 let raqueteJogador, raqueteComputador, bola, barraSuperior, barraInferior;
@@ -34,7 +34,7 @@ const show = (id) => { const e = el(id); if (e) e.style.display = 'block'; };
 const hide = (id) => { const e = el(id); if (e) e.style.display = 'none'; };
 
 // =============================================
-//  MOTOR DE ÁUDIO HÍBRIDO (Tag Audio + Synth)
+//  MOTOR DE ÁUDIO HÍBRIDO (Splash Trigger)
 // =============================================
 let audioCtx = null;
 let musicStarted = false;
@@ -47,15 +47,26 @@ function initAudio() {
   }
 }
 
-// Iniciar música e áudio no primeiro clique
-document.addEventListener('click', () => {
-  initAudio();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  if (!musicStarted) {
-    startMusic();
-    musicStarted = true;
-  }
-}, { once: true });
+// Função chamada pelo botão da Splash Screen
+window.entrarNoJogo = () => {
+    initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    // Adicionar classe de fade out e trocar telas
+    const splash = el('splash-screen');
+    if (splash) {
+        splash.classList.add('fade-out');
+        setTimeout(() => {
+            hide('splash-screen');
+            show('menu');
+            if (!musicStarted) {
+                startMusic();
+                musicStarted = true;
+            }
+            tocarBeep(600, 0.2); // Feedback de entrada
+        }, 600);
+    }
+};
 
 function tocarBeep(freq = 440, dur = 0.1, tipo = 'sine', vol = 0.1) {
   if (config.volumeSom <= 0) return;
@@ -85,13 +96,12 @@ function startMusic() {
       console.log("🎵 Música externa (MP3) iniciada!");
       usesExternalMusic = true;
     }).catch(err => {
-      console.warn("⚠️ Não foi possível tocar o MP3 automaticamente. Usando sintetizador procedural.", err);
+      console.warn("⚠️ Autoplay bloqueado ou erro no MP3. Usando sintetizador.");
+      usesExternalMusic = false;
       loopMusicProcedural();
     });
     
-    // Fallback caso o arquivo MP3 não carregue ou falhe
     audioEl.onerror = () => {
-       console.warn("❌ Erro ao carregar arquivo de música. Mudando para procedural.");
        usesExternalMusic = false;
        loopMusicProcedural();
     }
@@ -105,7 +115,7 @@ const melodia = [392.00, 440.00, 493.88, 523.25, 493.88, 440.00, 392.00, 349.23]
 const baixo = [196.00, 196.00, 174.61, 155.56];
 
 function loopMusicProcedural() {
-  if (usesExternalMusic) return; // Se a externa estiver tocando, cancela procedural
+  if (usesExternalMusic) return;
   
   if (config.volumeMusica > 0 && audioCtx) {
     const time = audioCtx.currentTime;
