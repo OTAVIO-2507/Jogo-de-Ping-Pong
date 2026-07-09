@@ -9,8 +9,6 @@ Jogo clássico de ping pong para navegador, construído com p5.js: física de co
 
 [![Demonstração online](https://img.shields.io/badge/demonstra%C3%A7%C3%A3o-online-2EA44F?style=for-the-badge)](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)
 
-[![Prévia do jogo](docs/preview.webp)](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)
-
 ## Visão geral
 
 O projeto implementa a mecânica completa de uma partida de ping pong: movimentação das raquetes, deslocamento e aceleração da bola, detecção de colisão e contagem de pontos, tudo renderizado quadro a quadro pelo loop de desenho do p5.js. O objetivo foi exercitar lógica de jogos, renderização em tempo real e organização de estado em JavaScript.
@@ -48,15 +46,13 @@ Abra o arquivo `index.html` no navegador e clique em iniciar. O p5.js é carrega
 ```
 Jogo-de-Ping-Pong/
 ├── index.html              Página do jogo
-├── src/
-│   ├── javascript/
-│   │   └── sketch.js       Lógica do jogo (p5.js)
-│   ├── style/
-│   │   └── styles.css      Estilos da página
-│   └── audio/
-│       └── musica.mp3      Trilha sonora
-└── docs/
-    └── preview.webp        Imagem de prévia do README
+└── src/
+    ├── javascript/
+    │   └── sketch.js       Lógica do jogo (p5.js)
+    ├── style/
+    │   └── styles.css      Estilos da página
+    └── audio/
+        └── musica.mp3      Trilha sonora
 ```
 
 ## Autor
