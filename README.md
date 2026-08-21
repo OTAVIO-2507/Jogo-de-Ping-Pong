@@ -9,7 +9,9 @@ Jogo clássico de ping pong para navegador, construído com p5.js: física de co
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css&logoColor=white)
 
-[![Demonstração online](https://img.shields.io/badge/demonstra%C3%A7%C3%A3o-online-2EA44F?style=flat-square)](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)
+![Prévia do projeto](src/img/preview.jpg)
+
+**[Ver Projeto](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)**
 
 </div>
 
@@ -25,6 +27,18 @@ O projeto implementa a mecânica completa de uma partida de ping pong: movimenta
 - Trilha sonora integrada à partida
 - Tela inicial com chamada para começar o jogo
 - Tipografia temática de fliperama (Orbitron e Press Start 2P)
+
+## Decisões de projeto
+
+Algumas escolhas que não são óbvias pelo código:
+
+**A tela de entrada existe para destravar o áudio.** Navegador nenhum deixa um `AudioContext` tocar sem gesto do usuário. Em vez de deixar o jogo começar mudo e torcer por um clique qualquer, o botão "Entrar na órbita" é o gesto: ele cria o contexto, chama `resume()` e só então libera o menu. A splash não é enfeite — é o único ponto do fluxo em que dá para garantir que o som vai existir.
+
+**O áudio tem plano B próprio.** `startMusic` tenta o MP3 externo e, se o autoplay for bloqueado ou o arquivo falhar, cai num sintetizador 8-bit escrito em Web Audio: melodia, baixo e percussão gerados por osciladores no próprio navegador. O jogo nunca fica em silêncio por causa de um arquivo ausente ou de uma política do navegador.
+
+**A paleta vive em dois lugares porque o canvas não lê CSS.** Os temas trocam custom properties em `body.tema-*` para os menus, mas o p5 desenha em canvas, onde variável de CSS não chega. `CORES_TEMAS` é o espelho em JavaScript dessa mesma paleta — duplicação deliberada, e o preço de misturar interface em DOM com jogo em canvas.
+
+**As estrelas são gradiente, não imagem.** Três camadas de `radial-gradient` animadas em velocidades diferentes (80s, 120s e 200s) produzem a profundidade do fundo sem nenhuma requisição de rede e sem sprite para carregar.
 
 ## Tecnologias
 
