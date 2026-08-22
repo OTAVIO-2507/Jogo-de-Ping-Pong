@@ -70,7 +70,9 @@ Jogo-de-Ping-Pong/
     │   └── sketch.js       Lógica do jogo (p5.js)
     ├── style/
     │   └── styles.css      Estilos da página
-    └── audio/
-        └── musica.mp3      Trilha sonora
+    ├── audio/
+    │   └── musica.mp3      Trilha sonora
+    └── img/
+        └── preview.jpg     Imagem de prévia do README
 ```
 
