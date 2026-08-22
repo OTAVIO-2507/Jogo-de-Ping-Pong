@@ -236,6 +236,13 @@ function tocarSomNota(freq, dur, tipo, vol, startTime) {
 // =============================================
 
 function setup() {
+  // Telas HiDPI: o p5 usa a densidade do aparelho sem teto, entao um celular
+  // com DPR 3 renderizava 9x mais pixels por quadro. O teto de 2 mantem a
+  // nitidez e corta boa parte do custo.
+  if (typeof pixelDensity === 'function' && typeof displayDensity === 'function') {
+    pixelDensity(Math.min(displayDensity(), 2));
+  }
+
   let cnv = createCanvas(windowWidth, windowHeight);
   cnv.parent(document.body);
   cnv.style('position', 'fixed');
@@ -264,11 +271,24 @@ function draw() {
 
   if (jogoPausado) return;
 
-  raqueteJogador.atualizar(); raqueteComputador.atualizar(); bola.atualizar();
-  bola.checarColisao(raqueteJogador); bola.checarColisao(raqueteComputador);
+  // Movimento por tempo, nao por quadro: num monitor de 144Hz ou num celular
+  // que cai para 40fps o jogo andava em velocidades diferentes.
+  const dt = constrain((typeof deltaTime === 'number' ? deltaTime : 16.667) / 16.667, 0.2, 3);
+
+  raqueteJogador.atualizar(dt); raqueteComputador.atualizar(dt);
+
+  // A bola avanca em sub-passos de no maximo um quadro. Sem isso, um engasgo
+  // que dobrasse o dt faria a bola pular a raquete inteira.
+  const subPassos = Math.ceil(dt);
+  const passo = dt / subPassos;
+  for (let i = 0; i < subPassos; i++) {
+    bola.atualizar(passo);
+    bola.checarColisao(raqueteJogador);
+    bola.checarColisao(raqueteComputador);
+  }
 
   for (let i = particulas.length - 1; i >= 0; i--) {
-    particulas[i].atualizar(); particulas[i].exibir();
+    particulas[i].atualizar(dt); particulas[i].exibir();
     if (particulas[i].vida <= 0) particulas.splice(i, 1);
   }
 
@@ -307,11 +327,55 @@ function touchMoved() {
 //  CONTROLE & CONFIGS
 // =============================================
 
+// =============================================
+//  ORIENTAÇÃO (celular deve jogar na horizontal)
+// =============================================
+const SEM_MEDIA_QUERY = { matches: false, addEventListener() { }, addListener() { } };
+const telaEmPe = (window.matchMedia
+  ? window.matchMedia('(orientation: portrait) and (max-width: 900px) and (pointer: coarse)')
+  : SEM_MEDIA_QUERY);
+
+let jogoAtivo = false; // partida em andamento, independente da pausa por rotação
+
+function aplicarPausaPorRotacao() {
+  if (!jogoAtivo || venceu) return;
+  // Em pé o aviso de girar cobre a tela; deixar a bola correndo atrás dele
+  // faria o jogador perder pontos sem ver nada.
+  jogoPausado = telaEmPe.matches;
+}
+
+if (telaEmPe.addEventListener) telaEmPe.addEventListener('change', aplicarPausaPorRotacao);
+else if (telaEmPe.addListener) telaEmPe.addListener(aplicarPausaPorRotacao);
+
+// Melhor esforço: só funciona em tela cheia e nem todo navegador aceita.
+// O aviso de girar continua sendo a garantia real.
+function tentarPaisagem() {
+  if (!telaEmPe.matches) return;
+  try {
+    const travar = () => {
+      if (screen.orientation && screen.orientation.lock) {
+        const p = screen.orientation.lock('landscape');
+        if (p && p.catch) p.catch(() => { });
+      }
+    };
+    const raiz = document.documentElement;
+    if (document.fullscreenElement) travar();
+    else if (raiz.requestFullscreen) {
+      const p = raiz.requestFullscreen();
+      if (p && p.then) p.then(travar).catch(() => { });
+    }
+  } catch (e) { }
+}
+
 window.iniciarJogo = () => {
   if (!bola) return; // p5 ainda não executou setup()
   hide('menu'); show('placar'); show('home-btn');
-  jogoPausado = false; venceu = false; pontosJogador = 0; pontosComputador = 0;
+  document.body.classList.add('jogando');
+  venceu = false; pontosJogador = 0; pontosComputador = 0;
   particulas = [];
+  jogoAtivo = true;
+  tentarPaisagem();
+  jogoPausado = telaEmPe.matches;
   atualizarPlacarHTML(); bola.reiniciar();
   tocarBeep(500, 0.2);
 };
@@ -319,15 +383,18 @@ window.iniciarJogo = () => {
 window.voltarParaMenu = () => {
   hide('mensagem-container'); hide('configuracoes-menu'); hide('ranking-menu');
   hide('placar'); hide('home-btn');
-  show('menu'); jogoPausado = true;
+  document.body.classList.remove('jogando');
+  show('menu'); jogoPausado = true; jogoAtivo = false;
   particulas = [];
 };
 
 window.reiniciarJogo = () => {
   if (!bola) return;
   hide('mensagem-container');
-  pontosJogador = 0; pontosComputador = 0; venceu = false; jogoPausado = false;
+  pontosJogador = 0; pontosComputador = 0; venceu = false;
   particulas = [];
+  jogoAtivo = true;
+  jogoPausado = telaEmPe.matches;
   bola.reiniciar(); atualizarPlacarHTML();
 };
 
@@ -369,7 +436,10 @@ window.setPontos = (p) => {
 };
 
 function aplicarTemaVisual() {
-  document.body.className = config.tema === 'espaco' ? '' : 'tema-' + config.tema;
+  // classList em vez de sobrescrever className: o antigo apagava qualquer
+  // outra classe do body (como "jogando") ao trocar de tema.
+  Object.keys(CORES_TEMAS).forEach(t => document.body.classList.remove('tema-' + t));
+  if (config.tema !== 'espaco') document.body.classList.add('tema-' + config.tema);
 }
 
 function atualizarUIConfig() {
@@ -455,11 +525,15 @@ function renderizarRanking() {
 
 class Raquete {
   constructor(x, y, w, h, isPlayer) { this.x = x; this.y = y; this.w = w; this.h = h; this.isPlayer = isPlayer; }
-  atualizar() {
-    if (this.isPlayer) { if (mouseY > 0 && mouseY < height) this.y = lerp(this.y, mouseY, 0.2); }
-    else {
-      let vel = VELOCIDADE_CPU[config.dificuldade] || 5;
-      if (this.y < bola.y - 10) this.y += vel; else if (this.y > bola.y + 10) this.y -= vel;
+  atualizar(dt = 1) {
+    if (this.isPlayer) {
+      if (mouseY > 0 && mouseY < height) this.y = lerp(this.y, mouseY, constrain(0.22 * dt, 0, 1));
+    } else {
+      // Controle proporcional: acelera longe da bola e desacelera ao chegar
+      // perto. O anterior era liga-desliga com zona morta de 10px, entao a
+      // raquete andava sempre na velocidade maxima e vibrava em volta do alvo.
+      const vel = VELOCIDADE_CPU[config.dificuldade] || 5;
+      this.y += constrain((bola.y - this.y) * 0.2, -vel, vel) * dt;
     }
     this.y = constrain(this.y, this.h / 2 + 10, height - this.h / 2 - 10);
   }
@@ -467,7 +541,8 @@ class Raquete {
     push(); rectMode(CENTER);
     let col = color(this.isPlayer ? cores().raqueteJ : cores().raqueteC);
     noStroke();
-    for (let i = 10; i > 0; i--) { fill(red(col), green(col), blue(col), 25 - i * 2); rect(this.x, this.y, this.w + i * 2, this.h + i * 2, 8); }
+    // Metade das camadas de brilho: mesmo degrade, metade das chamadas de desenho.
+    for (let i = 10; i > 0; i -= 2) { fill(red(col), green(col), blue(col), 25 - i * 2); rect(this.x, this.y, this.w + i * 2, this.h + i * 2, 8); }
     fill(255); rect(this.x, this.y, this.w, this.h, 4); pop();
   }
 }
@@ -475,8 +550,8 @@ class Raquete {
 class Bola {
   constructor(r) { this.r = r; this.reiniciar(); }
   reiniciar() { this.x = width / 2; this.y = height / 2; this.vx = random([-7, 7]); this.vy = random(-5, 5); }
-  atualizar() {
-    this.x += this.vx; this.y += this.vy;
+  atualizar(dt = 1) {
+    this.x += this.vx * dt; this.y += this.vy * dt;
 
     // Reposiciona junto com a inversão: sem o clamp, a bola podia atravessar a
     // barra e ficar invertendo vy a cada quadro, presa tremendo na borda.
@@ -515,7 +590,7 @@ class Bola {
   exibir() {
     push(); noStroke();
     let col = color(cores().bola);
-    for (let i = 8; i > 0; i--) { fill(red(col), green(col), blue(col), 40 - i * 4); ellipse(this.x, this.y, this.r + i * 4); }
+    for (let i = 8; i > 0; i -= 2) { fill(red(col), green(col), blue(col), 40 - i * 4); ellipse(this.x, this.y, this.r + i * 4); }
     fill(255); ellipse(this.x, this.y, this.r); pop();
   }
 }
@@ -524,6 +599,6 @@ class Barra { constructor(y, h) { this.y = y; this.h = h; } exibir() { noStroke(
 
 class Particula {
   constructor(x, y, col) { this.x = x; this.y = y; this.vx = random(-4, 4); this.vy = random(-4, 4); this.vida = 255; this.col = color(col); this.tamanho = random(2, 6); }
-  atualizar() { this.x += this.vx; this.y += this.vy; this.vida -= 8; }
+  atualizar(dt = 1) { this.x += this.vx * dt; this.y += this.vy * dt; this.vida -= 8 * dt; }
   exibir() { noStroke(); fill(red(this.col), green(this.col), blue(this.col), this.vida); ellipse(this.x, this.y, this.tamanho); }
 }

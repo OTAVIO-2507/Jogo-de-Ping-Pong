@@ -36,7 +36,7 @@
       <p class="splash-subtitle">UMA EXPERIÊNCIA INTERESTELAR 8-BIT</p>
       
       <div class="splash-tips">
-        <div class="tip-item"><span class="tip-icon" aria-hidden="true">🖱️</span> MOUSE PARA MOVER</div>
+        <div class="tip-item"><span class="tip-icon" aria-hidden="true">🖱️</span> MOUSE OU TOQUE</div>
         <div class="tip-item"><span class="tip-icon" aria-hidden="true">🎵</span> ÁUDIO HÍBRIDO</div>
         <div class="tip-item"><span class="tip-icon" aria-hidden="true">⚡</span> 60 FPS</div>
       </div>
@@ -75,7 +75,7 @@
       </button>
     </div>
 
-    <p class="menu-hint">Use o mouse para mover a raquete</p>
+    <p class="menu-hint">Mova a raquete com o mouse ou o dedo</p>
   </div>
 
   <!-- ===== MENU DE CONFIGURAÇÕES ===== -->
@@ -184,6 +184,18 @@
     <div id="mensagem-vitoria"></div>
     <div id="instrucoes-vitoria"></div>
     <button id="restart-btn" onclick="reiniciarJogo()">🔄 JOGAR NOVAMENTE</button>
+  </div>
+
+  <!-- Aviso de orientação: a partida foi desenhada para a tela deitada -->
+  <div id="girar-tela">
+    <div class="girar-icone" aria-hidden="true">📱</div>
+    <p class="girar-titulo">GIRE O APARELHO</p>
+    <p class="girar-texto">A partida foi feita para a tela na horizontal.<br>O jogo continua assim que você virar.</p>
+    <!-- Saída para quem está com a rotação travada e não consegue virar. -->
+    <button class="menu-btn btn-back girar-voltar" onclick="voltarParaMenu()">
+      <span class="btn-icon" aria-hidden="true">◀</span>
+      <span class="btn-text">VOLTAR AO MENU</span>
+    </button>
   </div>
 
   <!-- Áudio nativo para resiliência local -->

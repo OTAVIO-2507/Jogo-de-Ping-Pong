@@ -78,6 +78,12 @@ canvas {
 #stars,
 #stars2,
 #stars3 {
+  will-change: transform;
+}
+
+#stars,
+#stars2,
+#stars3 {
   position: absolute;
   inset: 0;
   background: transparent;
@@ -465,9 +471,13 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Dificuldade */
+/* margin-left: auto mantem o grupo colado a direita mesmo quando a linha
+   quebra: com flex-wrap, justify-content: space-between joga um item sozinho
+   na segunda linha para a esquerda. */
 .difficulty-btns {
   display: flex;
   gap: 6px;
+  margin-left: auto;
 }
 
 .diff-btn {
@@ -500,6 +510,7 @@ input[type="range"]::-moz-range-thumb {
 .theme-btns {
   display: flex;
   gap: 8px;
+  margin-left: auto;
 }
 
 .theme-btn {
@@ -531,6 +542,7 @@ input[type="range"]::-moz-range-thumb {
 .pts-btns {
   display: flex;
   gap: 8px;
+  margin-left: auto;
 }
 
 .pts-btn {
@@ -958,10 +970,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .splash-version {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
+  margin-top: 22px;
   font-size: 8px;
   color: rgba(255, 255, 255, 0.2);
   letter-spacing: 2px;
@@ -1004,4 +1013,90 @@ input[type="range"]:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ================================================
+   AVISO DE ORIENTAÇÃO (celular deve jogar deitado)
+   ================================================ */
+#girar-tela {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: #050010;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 28px;
+}
+
+.girar-icone {
+  font-size: 64px;
+  animation: girarDica 2.2s ease-in-out infinite;
+}
+
+@keyframes girarDica {
+
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  50% {
+    transform: rotate(-90deg);
+  }
+}
+
+.girar-titulo {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #fff;
+  text-shadow: 0 0 12px var(--accent), 0 0 30px var(--accent);
+}
+
+.girar-texto {
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.girar-voltar {
+  width: auto;
+  margin-top: 18px;
+  font-size: 12px;
+}
+
+/* Só durante a partida, e só em aparelho de toque: uma janela de desktop
+   estreita e alta nao deve pedir para o usuario girar o monitor. */
+@media (orientation: portrait) and (max-width: 900px) and (pointer: coarse) {
+  body.jogando #girar-tela {
+    display: flex;
+  }
+}
+
+/* ================================================
+   DESEMPENHO EM TELAS PEQUENAS / TOQUE
+   ================================================ */
+/* backdrop-filter sobre o canvas em movimento e recalculado a cada quadro.
+   Num celular isso pesa mais do que o desfoque entrega. */
+@media (max-width: 900px),
+(hover: none) {
+
+  #placar,
+  #home-btn {
+    backdrop-filter: none;
+    background: rgba(0, 0, 0, 0.85);
+  }
+}
+
+/* Evita a selecao de texto e o menu de contexto ao arrastar o dedo no jogo. */
+body.jogando {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
 }
