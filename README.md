@@ -11,7 +11,8 @@ Jogo clássico de ping pong para navegador, construído com p5.js: física de co
 
 ![Prévia do projeto](src/img/preview.jpg)
 
-**[Ver Projeto](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)**
+[![Ver projeto](https://img.shields.io/badge/Ver_projeto-3642B5?style=for-the-badge&logo=googlechrome&logoColor=white)](https://otavio-2507.github.io/Jogo-de-Ping-Pong/)
+[![Código](https://img.shields.io/badge/C%C3%B3digo-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/OTAVIO-2507/Jogo-de-Ping-Pong)
 
 </div>
 
