@@ -336,13 +336,25 @@ const telaEmPe = (window.matchMedia
   : SEM_MEDIA_QUERY);
 
 let jogoAtivo = false; // partida em andamento, independente da pausa por rotação
+let rotacaoIgnorada = false;
+
+const emPe = () => telaEmPe.matches && !rotacaoIgnorada;
 
 function aplicarPausaPorRotacao() {
   if (!jogoAtivo || venceu) return;
   // Em pé o aviso de girar cobre a tela; deixar a bola correndo atrás dele
   // faria o jogador perder pontos sem ver nada.
-  jogoPausado = telaEmPe.matches;
+  jogoPausado = emPe();
 }
+
+// Escape para quem está com a rotação da tela travada no aparelho e não
+// consegue virar: sem isso o aviso bloquearia o jogo inteiro.
+window.ignorarRotacao = () => {
+  rotacaoIgnorada = true;
+  document.body.classList.add('ignorar-rotacao');
+  aplicarPausaPorRotacao();
+  tocarBeep(500, 0.1);
+};
 
 if (telaEmPe.addEventListener) telaEmPe.addEventListener('change', aplicarPausaPorRotacao);
 else if (telaEmPe.addListener) telaEmPe.addListener(aplicarPausaPorRotacao);
@@ -375,7 +387,7 @@ window.iniciarJogo = () => {
   particulas = [];
   jogoAtivo = true;
   tentarPaisagem();
-  jogoPausado = telaEmPe.matches;
+  jogoPausado = emPe();
   atualizarPlacarHTML(); bola.reiniciar();
   tocarBeep(500, 0.2);
 };
@@ -394,7 +406,7 @@ window.reiniciarJogo = () => {
   pontosJogador = 0; pontosComputador = 0; venceu = false;
   particulas = [];
   jogoAtivo = true;
-  jogoPausado = telaEmPe.matches;
+  jogoPausado = emPe();
   bola.reiniciar(); atualizarPlacarHTML();
 };
 

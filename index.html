@@ -191,11 +191,17 @@
     <div class="girar-icone" aria-hidden="true">📱</div>
     <p class="girar-titulo">GIRE O APARELHO</p>
     <p class="girar-texto">A partida foi feita para a tela na horizontal.<br>O jogo continua assim que você virar.</p>
-    <!-- Saída para quem está com a rotação travada e não consegue virar. -->
-    <button class="menu-btn btn-back girar-voltar" onclick="voltarParaMenu()">
-      <span class="btn-icon" aria-hidden="true">◀</span>
-      <span class="btn-text">VOLTAR AO MENU</span>
-    </button>
+    <!-- Saídas para quem está com a rotação travada e não consegue virar:
+         sem elas o aparelho em pé bloquearia o jogo inteiro. -->
+    <div class="girar-acoes">
+      <button class="menu-btn btn-back girar-voltar" onclick="voltarParaMenu()">
+        <span class="btn-icon" aria-hidden="true">◀</span>
+        <span class="btn-text">VOLTAR AO MENU</span>
+      </button>
+      <button class="menu-btn btn-back girar-ignorar" onclick="ignorarRotacao()">
+        <span class="btn-text">CONTINUAR ASSIM MESMO</span>
+      </button>
+    </div>
   </div>
 
   <!-- Áudio nativo para resiliência local -->

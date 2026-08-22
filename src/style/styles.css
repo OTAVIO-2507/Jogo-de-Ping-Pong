@@ -1064,18 +1064,40 @@ input[type="range"]:focus-visible {
   color: rgba(255, 255, 255, 0.65);
 }
 
-.girar-voltar {
-  width: auto;
-  margin-top: 18px;
-  font-size: 12px;
-}
 
-/* Só durante a partida, e só em aparelho de toque: uma janela de desktop
-   estreita e alta nao deve pedir para o usuario girar o monitor. */
+/* Vale para o jogo inteiro, menus inclusive, e só em aparelho de toque:
+   uma janela de desktop estreita e alta nao deve pedir para o usuario
+   girar o monitor. */
 @media (orientation: portrait) and (max-width: 900px) and (pointer: coarse) {
-  body.jogando #girar-tela {
+  #girar-tela {
     display: flex;
   }
+}
+
+/* Quem tem a rotação travada no aparelho precisa conseguir seguir assim mesmo. */
+body.ignorar-rotacao #girar-tela {
+  display: none !important;
+}
+
+.girar-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.girar-ignorar,
+.girar-voltar {
+  width: auto;
+  margin-top: 0;
+  font-size: 11px;
+  padding: 12px 20px;
+}
+
+/* Fora da partida nao existe menu para onde voltar. */
+body:not(.jogando) .girar-voltar {
+  display: none;
 }
 
 /* ================================================
@@ -1099,4 +1121,225 @@ body.jogando {
   user-select: none;
   -webkit-touch-callout: none;
   touch-action: none;
+}
+
+/* ================================================
+   PAISAGEM BAIXA (celular deitado)
+   Espaço horizontal sobra e o vertical falta: os painéis viram duas
+   colunas e encolhem, para tudo caber sem rolagem.
+   ================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+
+  /* ---- Splash ---- */
+  .splash-content {
+    padding: 16px 30px;
+    border-radius: 24px;
+  }
+
+  .logo-icon-large {
+    font-size: 34px;
+    margin-bottom: 2px;
+  }
+
+  .splash-title {
+    font-size: 15px;
+    line-height: 1.35;
+    margin: 2px 0;
+  }
+
+  .splash-line {
+    margin: 8px auto;
+    height: 3px;
+  }
+
+  .splash-subtitle {
+    font-size: 8px;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+
+  .splash-tips {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .tip-item {
+    padding: 6px 10px;
+    font-size: 8px;
+    gap: 5px;
+  }
+
+  .splash-btn {
+    padding: 12px 32px !important;
+    font-size: 12px !important;
+  }
+
+  .splash-version {
+    margin-top: 10px;
+  }
+
+  /* ---- Painéis em duas colunas ---- */
+  #menu,
+  #configuracoes-menu,
+  #ranking-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 0 26px;
+    max-width: 720px;
+    padding: 16px 26px;
+    border-radius: 18px;
+  }
+
+  #menu > .menu-logo {
+    margin-bottom: 0;
+  }
+
+  .logo-icon {
+    font-size: 34px;
+    margin-bottom: 2px;
+  }
+
+  .menu-title {
+    font-size: 18px;
+    letter-spacing: 3px;
+  }
+
+  .menu-subtitle {
+    font-size: 9px;
+    letter-spacing: 5px;
+    margin-bottom: 10px;
+  }
+
+  .menu-buttons {
+    margin: 0;
+    gap: 10px;
+  }
+
+  .menu-btn {
+    padding: 11px 18px;
+    font-size: 12px;
+    letter-spacing: 2px;
+  }
+
+  .menu-hint {
+    grid-column: 1 / -1;
+    margin-top: 10px;
+  }
+
+  /* Cabeçalho e botão de voltar ocupam a linha inteira. */
+  .config-header {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+  }
+
+  .config-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  #configuracoes-menu > .btn-back,
+  #ranking-menu > .btn-back {
+    grid-column: 1 / -1;
+    margin-top: 12px;
+  }
+
+  .config-section {
+    padding: 8px 0;
+  }
+
+  .config-icon {
+    font-size: 16px;
+  }
+
+  .config-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .theme-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+
+  .diff-btn {
+    padding: 6px 9px;
+    font-size: 8px;
+  }
+
+  .pts-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+  }
+
+  .ranking-lista {
+    grid-column: 1 / -1;
+    margin: 8px 0;
+    max-height: 42vh;
+  }
+
+  .ranking-item {
+    padding: 7px 10px;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  /* ---- Tela final ---- */
+  #mensagem-container {
+    padding: 22px 32px;
+  }
+
+  #mensagem-vitoria {
+    margin-bottom: 8px;
+  }
+
+  #instrucoes-vitoria {
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  #restart-btn {
+    padding: 11px 26px;
+    font-size: 12px;
+  }
+}
+
+/* Telas ainda mais baixas (iPhone SE/5 deitado): aperta o suficiente para a
+   tela de configuracoes tambem caber sem rolagem. */
+@media (orientation: landscape) and (max-height: 360px) {
+
+  #menu,
+  #configuracoes-menu,
+  #ranking-menu {
+    padding: 12px 22px;
+  }
+
+  .config-header {
+    margin-bottom: 4px;
+  }
+
+  .config-title {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+
+  .config-section {
+    padding: 5px 0;
+  }
+
+  .theme-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  #configuracoes-menu > .btn-back,
+  #ranking-menu > .btn-back {
+    margin-top: 8px;
+  }
+
+  .menu-btn {
+    padding: 9px 16px;
+  }
 }
